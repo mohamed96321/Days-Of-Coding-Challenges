@@ -30,6 +30,11 @@ h1 {
   border: 2px solid #0062cc;
 }
 
+.central-div {
+  margin-top: 15px;
+  margin: auto;
+}
+
 .task-item {
   display: flex;
   align-items: center;

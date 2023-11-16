@@ -64,11 +64,14 @@ class TaskListView {
   constructor(containerId, taskList) {
     this.container = document.getElementById(containerId);
     this.taskList = taskList;
+    this.currentPage = 1;
+    this.pageSize = 6; // Number of tasks to display per page
+
     this.container.innerHTML = `
       <h1>Todo App</h1>
       <div class='flex'>
-      <input id="taskInput" type="text" placeholder="Enter a task" />
-      <button id="addButton" class="btn btn-primary">Add Task</button>
+        <input id="taskInput" type="text" placeholder="Enter a task" />
+        <button id="addButton" class="btn btn-primary">Add Task</button>
       </div>
       <ul id="taskList"></ul>
     `;
@@ -184,25 +187,78 @@ class TaskListView {
   }
 
   render() {
+    const startIndex = (this.currentPage - 1) * this.pageSize;
+    const endIndex = startIndex + this.pageSize;
+    const tasksToDisplay = this.taskList.tasks.slice(startIndex, endIndex);
+
     this.taskListElem.innerHTML = '';
-    this.taskList.tasks.forEach((task) => {
+    tasksToDisplay.forEach((task) => {
       const taskItem = document.createElement('li');
       taskItem.classList.add('task-item');
       taskItem.draggable = true;
       taskItem.innerHTML = `
-        
-        <input type="text" class="task-text form-control ${
-          task.done ? 'done' : ''
-        }" data-task-id="${task.id}" value="${task.text}" readonly />
-        <button class="delete-button btn btn-danger" data-task-id="${
-          task.id
-        }">Delete</button>
-	<button class="done-button btn btn-success" data-task-id="${task.id}">${
-        task.done ? 'Undone' : 'Done'
-      }</button>
-      `;
-      this.taskListElem.prepend(taskItem);
+          <input type="text" class="task-text form-control ${
+            task.done ? 'done' : ''
+          }" data-task-id="${task.id}" value="${task.text}" readonly />
+          <button class="delete-button btn btn-danger" data-task-id="${
+            task.id
+          }">Delete</button>
+          <button class="done-button btn btn-success" data-task-id="${
+            task.id
+          }">${task.done ? 'Undone' : 'Done'}</button>
+        `;
+      this.taskListElem.appendChild(taskItem);
     });
+
+    // Add previous and next buttons
+    const totalPages = Math.ceil(this.taskList.tasks.length / this.pageSize);
+    const paginationElem = document.createElement('div');
+    paginationElem.classList.add('pagination');
+    paginationElem.innerHTML = `
+      <div class="central-div d-flex justify-content-center">
+        <button class="prev-btn btn btn-primary me-2 ${
+        this.currentPage === 1 ? 'disabled' : ''
+        }">Previous</button>
+        <button class="next-btn btn btn-primary ${
+          endIndex >= this.taskList.tasks.length ? 'disabled' : ''
+        }">Next</button>
+      </div>
+    `;
+
+    // Remove existing pagination elements before adding the new one
+    const existingPaginationElem = this.container.querySelector('.pagination');
+    if (existingPaginationElem) {
+      existingPaginationElem.remove();
+    }
+
+    this.container.appendChild(paginationElem);
+
+    // Add event listeners for previous and next buttons
+    const prevBtn = this.container.querySelector('.prev-btn');
+    const nextBtn = this.container.querySelector('.next-btn');
+
+    prevBtn.addEventListener('click', () => {
+      this.goToPreviousPage();
+    });
+
+    nextBtn.addEventListener('click', () => {
+      this.goToNextPage();
+    });
+  }
+
+  goToPreviousPage() {
+    if (this.currentPage > 1) {
+      this.currentPage--;
+      this.render();
+    }
+  }
+
+  goToNextPage() {
+    const totalPages = Math.ceil(this.taskList.tasks.length / this.pageSize);
+    if (this.currentPage < totalPages) {
+      this.currentPage++;
+      this.render();
+    }
   }
 
   editTask(taskId, target) {
