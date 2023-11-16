@@ -169,11 +169,14 @@ class TaskListView {
       const targetIndex = Array.from(this.taskListElem.children).indexOf(
         targetElement
       );
-      this.taskList.tasks.splice(
-        targetIndex,
-        0,
-        this.taskList.tasks.splice(draggingIndex, 1)[0]
-      );
+
+      if (draggingIndex !== targetIndex) {
+        const draggedTask = this.taskList.tasks[draggingIndex];
+        this.taskList.tasks.splice(draggingIndex, 1);
+        this.taskList.tasks.splice(targetIndex, 0, draggedTask);
+        this.taskList.saveTasks();
+      }
+
       this.render();
     });
 
@@ -198,7 +201,7 @@ class TaskListView {
         task.done ? 'Undone' : 'Done'
       }</button>
       `;
-      this.taskListElem.appendChild(taskItem);
+      this.taskListElem.prepend(taskItem);
     });
   }
 
